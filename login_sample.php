@@ -41,6 +41,28 @@
       // Kui oleme siia jõudnud, võime kasutaja sisse logida
 			if($password_error == "" && $email_error == ""){
 				echo "Võib sisse logida! Kasutajanimi on ".$email." ja parool on ".$password;
+				
+				$hash = hash("sha512", $password);
+				
+				$stmt = $mysqli->prepare("SELECT id, email FROM user_sample WHERE email=? AND password=?");
+				$stmt->bind_param("ss", $email, $hash);
+				
+				//muutujad tulemustele
+				$stmt->bind_result($id_from_db, $email_from_db);
+				$stmt->execute();
+				
+				//Kontrollin kas tulemusi leiti
+				if($stmt->fetch()){
+					//andmebaasis oli midagi
+						echo "Email ja parool õiged, kasutaja id=".$id_from_db;
+					}else{
+						// ei leidnud
+						echo "Valed andmed!";
+				}
+				
+				$stmt->close();
+				
+				
 			}
 
 		} // login if end
@@ -68,14 +90,14 @@
 
 			if(	$create_email_error == "" && $create_password_error == ""){
 				
-				// räsi paroolist, mille salvestame andmebaasi
+				// Räsi paroolist, mille salvestame andmebaasi
 				$hash = hash("sha512", $create_password);
 				
 				echo "Võib kasutajat luua! Kasutajanimi on ".$create_email." ja parool on ".$create_password." ja räsi on".$hash;
 				
-				//Salvestame andmebaasi
+				// Salvestame andmebaasi
 				$stmt = $mysqli->prepare("INSERT INTO user_sample (email, password) VALUES (?,?)");
-				// asendame küsimärgid, ss - s on string email, s on string password
+				// Asendame küsimärgid, ss - s on string email, s on string password
 				$stmt->bind_param("ss", $create_email, $hash);
 				$stmt->execute();
 				$stmt->close();
